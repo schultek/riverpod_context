@@ -1,0 +1,21 @@
+name: riverpod_context
+description: Bringing back context extensions for riverpod
+version: 0.0.1
+repository: https://github.com/schultek/riverpod_context
+issue_tracker: https://github.com/schultek/riverpod_context/issues
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+
+flutter:
