@@ -5,7 +5,7 @@ import 'dependency_watcher.dart';
 class BuildWatcher {
   static late BuildWatcher instance = BuildWatcher._();
 
-  Set<DependencyWatcher> interceptors = {};
+  Set<DependencyWatcher> watchers = {};
 
   BuildWatcher._() {
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
@@ -14,11 +14,11 @@ class BuildWatcher {
   }
 
   void onFrame() {
-    for (var interceptor in [...interceptors]) {
+    for (var watcher in [...watchers]) {
       // if the dependencies are null, this element was removed from the tree
-      if (interceptor.needsDependencyCheck ||
-          interceptor.parent.getDependencies(interceptor.dependent) == null) {
-        interceptor.checkDependencies();
+      if (watcher.needsDependencyCheck ||
+          watcher.parent.getDependencies(watcher.dependent) == null) {
+        watcher.checkDependencies();
       }
     }
   }

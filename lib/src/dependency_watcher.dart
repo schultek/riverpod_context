@@ -9,7 +9,7 @@ class DependencyWatcher {
   final InheritedConsumerElement parent;
 
   DependencyWatcher(this.dependent, this.parent) {
-    BuildWatcher.instance.interceptors.add(this);
+    BuildWatcher.instance.watchers.add(this);
   }
 
   Map<ProviderListenable, ProviderSubscription> subscriptions = {};
@@ -37,8 +37,6 @@ class DependencyWatcher {
 
         // trigger a rebuild for this dependent
         dependent.markNeedsBuild();
-
-        parent.markNeedsBuild();
       }
 
       var container = ProviderScope.containerOf(dependent);
@@ -83,7 +81,15 @@ class DependencyWatcher {
 
     if (subscriptions.isEmpty) {
       parent.watchers.remove(dependent);
-      BuildWatcher.instance.interceptors.remove(this);
+      BuildWatcher.instance.watchers.remove(this);
     }
+  }
+
+  void dispose() {
+    for (var subscription in subscriptions.values) {
+      subscription.close();
+    }
+    subscriptions.clear();
+    BuildWatcher.instance.watchers.remove(this);
   }
 }

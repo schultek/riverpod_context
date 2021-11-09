@@ -99,11 +99,10 @@ class InheritedConsumerElement extends InheritedElement {
   @override
   void unmount() {
     // cleanup all dependencies
-    for (var interceptor in watchers.values) {
-      for (var subscription in interceptor.subscriptions.values) {
-        subscription.close();
-      }
+    for (var watcher in watchers.values) {
+      watcher.dispose();
     }
+    watchers.clear();
     super.unmount();
   }
 }
