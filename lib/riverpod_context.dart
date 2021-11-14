@@ -28,5 +28,29 @@ extension RiverpodContext on BuildContext {
     InheritedConsumer.prime(this);
   }
 
-// Todo add context.listen
+  /// Listens to a provider and automatically manages the subscription
+  void listen<T>(
+    ProviderListenable<T> provider,
+    void Function(T? previous, T value) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    bool fireImmediately = false,
+  }) {
+    InheritedConsumer.listen<T>(this, provider, listener,
+        onError: onError, fireImmediately: fireImmediately);
+  }
+
+  void unlisten(ProviderListenable provider) {
+    InheritedConsumer.unlisten(this, provider);
+  }
+
+  /// Listens to a provider and returns the subscription.
+  ProviderSubscription<T> subscribe<T>(
+    ProviderListenable<T> provider,
+    void Function(T? previous, T value) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    bool fireImmediately = false,
+  }) {
+    return ProviderScope.containerOf(this).listen(provider, listener,
+        fireImmediately: fireImmediately, onError: onError);
+  }
 }

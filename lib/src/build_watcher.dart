@@ -16,8 +16,9 @@ class BuildWatcher {
   void onFrame() {
     for (var watcher in [...watchers]) {
       // if the dependencies are null, this element was removed from the tree
-      if (watcher.needsDependencyCheck ||
-          watcher.parent.getDependencies(watcher.dependent) == null) {
+      if (watcher.parent.getDependencies(watcher.dependent) == null) {
+        watcher.dispose();
+      } else if (watcher.needsDependencyCheck) {
         watcher.checkDependencies();
       }
     }

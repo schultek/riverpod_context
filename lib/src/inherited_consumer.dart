@@ -19,8 +19,8 @@ class InheritedConsumer extends InheritedWidget {
     _ensureDebugDoingBuild(context, 'watch');
 
     var elem = _getElementOrThrow(context);
-    context.dependOnInheritedElement(elem, aspect: target);
-    return elem._read(context, target) as T;
+    context.dependOnInheritedElement(elem);
+    return elem._watch(context, target);
   }
 
   /// Priming a context is necessary when context.watch is called conditionally
@@ -28,6 +28,25 @@ class InheritedConsumer extends InheritedWidget {
   static void prime(BuildContext context) {
     _ensureDebugDoingBuild(context, 'prime');
     _getElementOrThrow(context)._prime(context);
+  }
+
+  /// This will listen to the provider and manage the provider subscription
+  static void listen<T>(
+    BuildContext context,
+    ProviderListenable<T> target,
+    void Function(T? previous, T value) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    bool fireImmediately = false,
+  }) {
+    var elem = _getElementOrThrow(context);
+    context.dependOnInheritedElement(elem);
+    elem._listen(context, target, listener,
+        onError: onError, fireImmediately: fireImmediately);
+  }
+
+  static void unlisten(BuildContext context, ProviderListenable target) {
+    var elem = _getElementOrThrow(context);
+    elem._unlisten(context, target);
   }
 
   static void _ensureDebugDoingBuild(BuildContext context, String method) {
@@ -63,26 +82,35 @@ class InheritedConsumerElement extends InheritedElement {
   final watchers = <Element, DependencyWatcher>{};
 
   /// This gets invoked after calling [dependOnInheritedElement] during build.
-  /// We use the [aspect] parameter for the provider we want to watch.
   @override
   void updateDependencies(Element dependent, Object? aspect) {
-    var listenable = aspect as ProviderListenable;
+    watchers[dependent] ??= DependencyWatcher(dependent, this);
+  }
 
-    if (!watchers.containsKey(dependent)) {
-      watchers[dependent] = DependencyWatcher(dependent, this);
-    }
+  /// This is called after [dependOnInheritedElement] to watch a provider.
+  T _watch<T>(Object dependent, ProviderListenable<T> target) {
+    return watchers[dependent]!.watch(target);
+  }
 
-    watchers[dependent]!.watch(listenable);
+  /// This is called after [dependOnInheritedElement] to listen to a provider.
+  void _listen<T>(
+    Object dependent,
+    ProviderListenable<T> target,
+    void Function(T? previous, T value) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    bool fireImmediately = false,
+  }) {
+    watchers[dependent]!.listen(target, listener,
+        onError: onError, fireImmediately: fireImmediately);
+  }
+
+  /// This will unsubscribe a previous listened-to provider
+  void _unlisten(Object dependent, ProviderListenable target) {
+    watchers[dependent]?.unlisten(target);
   }
 
   void _prime(BuildContext dependent) {
     watchers[dependent]?.prime();
-  }
-
-  /// This is used to return the current value when calling [context.watch].
-  /// We need this since [dependOnInheritedElement] returns void.
-  dynamic _read(Object dependent, ProviderListenable target) {
-    return watchers[dependent]?.subscriptions[target]?.read();
   }
 
   @override
@@ -100,7 +128,7 @@ class InheritedConsumerElement extends InheritedElement {
   void unmount() {
     // cleanup all dependencies
     for (var watcher in watchers.values) {
-      watcher.dispose();
+      watcher.clear();
     }
     watchers.clear();
     super.unmount();

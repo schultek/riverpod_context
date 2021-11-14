@@ -35,13 +35,15 @@ void main() {
     (WidgetTester tester) async {
       await tester.pumpWidget(providerApp((context) {
         return Column(children: [
-          TextButton(
-            key: const ValueKey('a'),
-            child: Text('a ${context.watch(counter)}'),
-            onPressed: () {
-              context.read(counter.state).state++;
-            },
-          ),
+          Builder(builder: (context) {
+            return TextButton(
+              key: const ValueKey('a'),
+              child: Text('a ${context.watch(counter)}'),
+              onPressed: () {
+                context.read(counter.state).state++;
+              },
+            );
+          }),
           ProviderScope(
             overrides: [counter.overrideWithValue(StateController(10))],
             child: Builder(builder: (context) {

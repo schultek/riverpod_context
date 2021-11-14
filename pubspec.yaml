@@ -1,6 +1,6 @@
 name: riverpod_context
 description: This package brings back context.read and context.watch for riverpod
-version: 0.0.2
+version: 0.1.0
 repository: https://github.com/schultek/riverpod_context
 issue_tracker: https://github.com/schultek/riverpod_context/issues
 

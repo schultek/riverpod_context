@@ -5,11 +5,11 @@ that were discontinued in version 1.0.0.
 - To read any provider, do `context.read(myProvider)`
 - To watch any provider, do `context.watch(myProvider)`
 
-> During the development of riverpod 1.0.0 there was a long discussion on removing the context extensions.
-> While being very convenient, there are good reasons why they didn't make it into the final version.
+This package is meant to be used alongside riverpod and offer an alternative 
+to the official `ConsumerWidget` and `ConsumerStatefulWidget`.
 
-> This is no 'official' riverpod package. It is meant to be used alongside riverpod and offer 
-> an alternative to the official `ConsumerWidget` and `ConsumerStatefulWidget`.
+> During the development of riverpod 1.0.0 there was some discussion on removing the context extensions.
+> While being very convenient, there are good reasons why they didn't make it into the final version.
 
 ## Getting Started
 
@@ -41,6 +41,12 @@ That's all.
 ## Context Extensions
 
 `riverpod_context` provides four convenient context extensions to interact with your providers.
+
+- [context.read](#contextread)
+- [context.watch](#contextwatch)
+- [context.refresh](#contextrefresh)
+- [context.listen](#contextlisten)
+- [context.subscribe](#contextsubscribe)
 
 ### context.read
 
@@ -99,10 +105,6 @@ where the dependencies of the provider are not clearly defined.
 **It is important to make sure that this does not happen, since it can lead to leaking memory and wrong
 behavior!**
 
-> This is also the main reason why this didn't make it into riverpod 1.0.0. There are of 
-> course ways to prevent this, but it is in the responsibility of the user to do so and 
-> therefore not compile safe.
-
 Preventing this is however pretty simple.
 
 If there exists another `context.watch` on the same context, this issue is resolved. Generally speaking,
@@ -122,9 +124,9 @@ Widget build(BuildContext context) {
 ```
 
 If there is (under certain conditions) no `context.watch` call, you have to "prime" the context 
-for the missing provider. This can be done using a simple `context.prime()`.
+for the missing provider. This can be done using a simple `context.prime()` call.
 
-In the example above, this can be done either in the `else`, or always at the beginning. It also has
+In the example above, this can be placed either in the `else`, or always at the beginning. It also has
 no effect to do it multiple times.
 ```dart
 Widget build(BuildContext context) {
@@ -138,7 +140,7 @@ Widget build(BuildContext context) {
 }
 ```
 
-To recap just remember this:
+As a rule just remember this:
 
 **Wherever you use `context.watch` conditionally, make sure to either have another unconditional `context.watch` or use `context.prime` on the same context.**
 
@@ -163,6 +165,97 @@ Widget build(BuildContext context) {
 
 ### context.listen
 
-Listens to a provider without triggering a rebuild.
+`context.listen` Listens to a provider without triggering a rebuild. This can be used inside the
+`build()` method or in the `didChangeDependencies()` of a stateful widget.
 
-Coming soon.
+```dart
+Widget build(BuildContext context) {
+  
+  context.listen(myProvider, (previous, value) {
+    // do something
+  });
+  
+  return SomeWidget();
+}
+```
+
+#### Idempotent listeners
+
+There will only ever be a single active listener for a specific context, meaning that 
+calling `context.listen` multiple times for the same provider will only have the last listener active. 
+Only because of this it is safe to use `context.listen` inside the `build()` method across rebuilds.
+
+
+You can set `fireImmediate: true` to immediately fire the listener once. This will be ignored when 
+re-listening to a provider, i.e. after a rebuild.
+  
+```dart
+Widget build(BuildContext context) {
+
+  // across multiple rebuilds, there will only exist a single listener on this provider
+  // only on the first build, the listener will fire immediately
+  context.listen(myProvider, (previous, value) {
+    // do something
+  }, fireImmediately: true);
+  
+  return SomeWidget();
+}
+```
+
+#### Closing listeners
+
+All listeners will only be closed when the context is disposed. 
+Therefore it has no effect to call `context.listen` conditionally, especially with `.autoDispose` providers.
+
+There are two ways to control the closing of a listener:
+
+- By using `context.unlisten` you can close the active listener on a provider.
+- When wanting more control over a listener, use `context.subscribe`.
+
+```dart
+Widget build(BuildContext context) {
+
+  if (myCondition) {
+    context.listen(myProvider, (previous, value) {
+      // do something
+    });
+  } else {
+    // this will remove the active listener on this provider
+    // and properly dispose an .autoDispose provider
+    context.unlisten(myProvider);
+  }
+  
+  return SomeWidget();
+}
+```
+
+### context.subscribe
+
+`context.subscribe` listens to a provider and returns the `ProviderSubscription`. Use this 
+when you need to manually manage the subscription of a provider. 
+
+- This can be used wherever you have a `BuildContext`, even in the `initState()` method.
+- Make sure to call `subscription.close()` when the listener is no longer needed.
+
+```dart
+class MyWidgetState extends State<MyWidget> {
+  
+  late ProviderSubscription subscription;
+  
+  @override
+  void initState() {
+    // store the returned subscription in a variable
+    subscription = context.subscribe(myProvider, (previous, value) {
+      // do something
+    });
+  }
+  
+  // ...
+  
+  @override dispose() {
+    // make sure to properly close the subscription
+    subscription.close();
+  }
+}
+
+```

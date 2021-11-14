@@ -10,9 +10,11 @@ class DependencyWatcher {
 
   DependencyWatcher(this.dependent, this.parent) {
     BuildWatcher.instance.watchers.add(this);
+    parent.setDependencies(dependent, {});
   }
 
   Map<ProviderListenable, ProviderSubscription> subscriptions = {};
+  Map<ProviderListenable, ProviderSubscription> listeners = {};
 
   /// [InheritedElement] has it's own private [_dependents] but we use both
   /// to identify changes in dependencies after widget rebuilds
@@ -22,7 +24,7 @@ class DependencyWatcher {
   /// To signal [BuildWatcher] to call [checkDependencies] after next frame
   bool needsDependencyCheck = false;
 
-  void watch(ProviderListenable listenable) {
+  T watch<T>(ProviderListenable<T> listenable) {
     if (!subscriptions.containsKey(listenable)) {
       // create a new [ProviderSubscription] and add it to the dependencies
 
@@ -49,6 +51,31 @@ class DependencyWatcher {
     (nextDependents ??= {}).add(listenable);
 
     needsDependencyCheck = true;
+
+    return subscriptions[listenable]!.read();
+  }
+
+  void listen<T>(
+    ProviderListenable<T> listenable,
+    void Function(T? previous, T value) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    bool fireImmediately = false,
+  }) {
+    // close any existing listeners for the same provider
+    if (listeners.containsKey(listenable)) {
+      listeners[listenable]!.close();
+      fireImmediately = false;
+    }
+
+    var container = ProviderScope.containerOf(dependent);
+    var subscription = container.listen(listenable, listener,
+        fireImmediately: fireImmediately, onError: onError);
+
+    listeners[listenable] = subscription;
+  }
+
+  void unlisten(ProviderListenable listenable) {
+    listeners.remove(listenable)?.close();
   }
 
   void prime() {
@@ -78,18 +105,22 @@ class DependencyWatcher {
     });
 
     needsDependencyCheck = false;
-
-    if (subscriptions.isEmpty) {
-      parent.watchers.remove(dependent);
-      BuildWatcher.instance.watchers.remove(this);
-    }
   }
 
-  void dispose() {
+  void clear() {
     for (var subscription in subscriptions.values) {
       subscription.close();
     }
     subscriptions.clear();
+    for (var listener in listeners.values) {
+      listener.close();
+    }
+    listeners.clear();
     BuildWatcher.instance.watchers.remove(this);
+  }
+
+  void dispose() {
+    clear();
+    parent.watchers.remove(dependent);
   }
 }
