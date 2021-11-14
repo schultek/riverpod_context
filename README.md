@@ -5,11 +5,8 @@ that were discontinued in version 1.0.0.
 - To read any provider, do `context.read(myProvider)`
 - To watch any provider, do `context.watch(myProvider)`
 
-This package is meant to be used alongside riverpod and offer an alternative 
+This package is meant to be used alongside riverpod and offers an alternative 
 to the official `ConsumerWidget` and `ConsumerStatefulWidget`.
-
-> During the development of riverpod 1.0.0 there was some discussion on removing the context extensions.
-> While being very convenient, there are good reasons why they didn't make it into the final version.
 
 ## Getting Started
 
@@ -75,16 +72,20 @@ Widget build(BuildContext context) {
 }
 ```
 
-There are a few important considerations to make when using `context.watch`. With those, you
+🚨 There are a few important considerations to make when using `context.watch`. With those, you
 can also safely use any `.autoDispose` providers.
 
-#### 1. Only use inside build()
+<details>
+  <summary>1. Only use inside build()</summary>
 
-`context.watch` can only be used inside the `build()` method of a widget. 
+`context.watch` can only be used inside the `build()` method of a widget.
 Especially interaction callbacks (like `onPressed`) and `StatefulWidget`s `initState`, 
 `didChangeDependencies` and other lifecycle handlers are not allowed.
-   
-#### 2. Be cautious when conditionally watching providers
+
+</details>
+
+<details>
+  <summary>2. Be cautious when conditionally watching providers</summary>
 
 It is possible to conditionally watch providers. This is the case when `context.watch` may not be
 called on every rebuild.
@@ -111,6 +112,7 @@ If there exists another `context.watch` on the same context, this issue is resol
 it requires at least **one** `context.watch` call on every build to be safe.
 
 If in the example above, the `myCondition` actually comes from another `context.watch` call, you are safe.
+
 ```dart
 Widget build(BuildContext context) {
   if (context.watch(myConditionProvider)) {
@@ -123,11 +125,19 @@ Widget build(BuildContext context) {
 }
 ```
 
-If there is (under certain conditions) no `context.watch` call, you have to "prime" the context 
+If not, use `context.prime()`.
+
+</details>
+
+<details>
+  <summary>3. Or use context.prime() when conditionally watching providers</summary>
+
+If `context.watch` is - under certain conditions - not called on every rebuild, you have to "prime" the context
 for the missing provider. This can be done using a simple `context.prime()` call.
 
-In the example above, this can be placed either in the `else`, or always at the beginning. It also has
+In the previous example, this can be placed either in the `else`, or unconditionally at the top. It also has
 no effect to do it multiple times.
+
 ```dart
 Widget build(BuildContext context) {
   context.prime(); // option 1: always prime
@@ -139,6 +149,8 @@ Widget build(BuildContext context) {
   }
 }
 ```
+
+</details>
 
 As a rule just remember this:
 
@@ -179,7 +191,7 @@ Widget build(BuildContext context) {
 }
 ```
 
-#### Idempotent listeners
+##### Idempotent listeners
 
 There will only ever be a single active listener for a specific context, meaning that 
 calling `context.listen` multiple times for the same provider will only have the last listener active. 
@@ -202,7 +214,7 @@ Widget build(BuildContext context) {
 }
 ```
 
-#### Closing listeners
+##### Closing listeners
 
 All listeners will only be closed when the context is disposed. 
 Therefore it has no effect to call `context.listen` conditionally, especially with `.autoDispose` providers.
