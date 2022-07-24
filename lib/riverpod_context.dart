@@ -50,7 +50,8 @@ extension RiverpodContext on BuildContext {
     void Function(Object error, StackTrace stackTrace)? onError,
     bool fireImmediately = false,
   }) {
-    return ProviderScope.containerOf(this).listen(provider, listener,
+    return ProviderScope.containerOf(this, listen: false).listen(
+        provider, listener,
         fireImmediately: fireImmediately, onError: onError);
   }
 }
