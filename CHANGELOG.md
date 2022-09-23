@@ -1,3 +1,7 @@
+## 0.2.0-dev.0
+
+- Bump riverpod version to 2.0.0-dev.9
+
 ## 0.1.1
 
 - Updated Readme

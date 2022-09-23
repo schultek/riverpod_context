@@ -18,6 +18,11 @@ extension RiverpodContext on BuildContext {
     return ProviderScope.containerOf(this, listen: false).refresh(provider);
   }
 
+  /// Invalidates a provider
+  void invalidate<T>(ProviderBase<T> provider) {
+    ProviderScope.containerOf(this, listen: false).invalidate(provider);
+  }
+
   /// Watches a provider and rebuilds the current context on change
   T watch<T>(ProviderListenable<T> provider) {
     return InheritedConsumer.watch<T>(this, provider);

@@ -1,17 +1,17 @@
 name: riverpod_context
 description: This package brings back context.read and context.watch for riverpod
-version: 0.1.1
+version: 0.2.0-dev.0
 repository: https://github.com/schultek/riverpod_context
 issue_tracker: https://github.com/schultek/riverpod_context/issues
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.17.0"
+  sdk: ">=2.17.0 <3.0.0"
+  flutter: ">=3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^1.0.0
+  flutter_riverpod: ^2.0.0-dev.9
 
 dev_dependencies:
   flutter_test:
