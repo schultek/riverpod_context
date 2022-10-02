@@ -42,6 +42,7 @@ That's all.
 - [context.read](#contextread)
 - [context.watch](#contextwatch)
 - [context.refresh](#contextrefresh)
+- [context.invalidate](#contextinvalidate)
 - [context.listen](#contextlisten)
 - [context.subscribe](#contextsubscribe)
 
@@ -171,6 +172,21 @@ Widget build(BuildContext context) {
       context.refresh(myProvider);
     },
     child: const Text('Refresh'),
+  );
+}
+```
+
+### context.invalidate
+
+`context.invalidate` invalidates any provider.
+
+```dart
+Widget build(BuildContext context) {
+  return TextButton(
+    onPressed: () {
+      context.invalidate(myProvider);
+    },
+    child: const Text('Invalidate'),
   );
 }
 ```

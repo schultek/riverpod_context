@@ -9,17 +9,17 @@ export 'src/inherited_consumer.dart' show InheritedConsumer;
 
 extension RiverpodContext on BuildContext {
   /// Reads a provider without listening to it
-  T read<T>(ProviderBase<T> provider) {
+  T read<T>(ProviderListenable<T> provider) {
     return ProviderScope.containerOf(this, listen: false).read(provider);
   }
 
   /// Refreshes a provider
-  T refresh<T>(ProviderBase<T> provider) {
+  T refresh<T>(Refreshable<T> provider) {
     return ProviderScope.containerOf(this, listen: false).refresh(provider);
   }
 
   /// Invalidates a provider
-  void invalidate<T>(ProviderBase<T> provider) {
+  void invalidate(ProviderOrFamily provider) {
     ProviderScope.containerOf(this, listen: false).invalidate(provider);
   }
 

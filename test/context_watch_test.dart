@@ -45,7 +45,7 @@ void main() {
             );
           }),
           ProviderScope(
-            overrides: [counter.overrideWithValue(StateController(10))],
+            overrides: [counter.overrideWithProvider(StateProvider((_) => 10))],
             child: Builder(builder: (context) {
               return TextButton(
                 key: const ValueKey('b'),
@@ -77,7 +77,7 @@ void main() {
   );
 
   testWidgets(
-    'provider is autodisposed when no longer watched',
+    'provider is auto-disposed when no longer watched',
     (WidgetTester tester) async {
       await tester.pumpWidget(providerApp((context) {
         var showCounter = true;

@@ -27,7 +27,7 @@ void main() {
         return Column(children: [
           Text('a ${context.read(counter)}'),
           ProviderScope(
-            overrides: [counter.overrideWithValue(StateController(1))],
+            overrides: [counter.overrideWithProvider(StateProvider((_) => 1))],
             child: Builder(builder: (context) {
               return Text('b ${context.read(counter)}');
             }),
