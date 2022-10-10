@@ -10,9 +10,9 @@ class DependencyWatcher {
 
   DependencyWatcher(this.dependent, this.parent) {
     BuildWatcher.instance.watchers.add(this);
-    parent.setDependencies(dependent, {});
   }
 
+  ProviderContainer? listenedContainer;
   Map<ProviderListenable, ProviderSubscription> subscriptions = {};
   Map<ProviderListenable, ProviderSubscription> listeners = {};
 
@@ -25,6 +25,8 @@ class DependencyWatcher {
   bool needsDependencyCheck = false;
 
   T watch<T>(ProviderListenable<T> listenable) {
+    var container = checkContainer();
+
     if (!subscriptions.containsKey(listenable)) {
       // create a new [ProviderSubscription] and add it to the dependencies
 
@@ -41,7 +43,6 @@ class DependencyWatcher {
         dependent.markNeedsBuild();
       }
 
-      var container = ProviderScope.containerOf(dependent);
       var subscription = container.listen(listenable, listener);
 
       subscriptions[listenable] = subscription;
@@ -61,13 +62,14 @@ class DependencyWatcher {
     void Function(Object error, StackTrace stackTrace)? onError,
     bool fireImmediately = false,
   }) {
+    var container = checkContainer();
+
     // close any existing listeners for the same provider
     if (listeners.containsKey(listenable)) {
       listeners[listenable]!.close();
       fireImmediately = false;
     }
 
-    var container = ProviderScope.containerOf(dependent);
     var subscription = container.listen(listenable, listener,
         fireImmediately: fireImmediately, onError: onError);
 
@@ -107,7 +109,15 @@ class DependencyWatcher {
     needsDependencyCheck = false;
   }
 
-  void clear() {
+  ProviderContainer checkContainer() {
+    var container = ProviderScope.containerOf(dependent);
+    if (listenedContainer != null && listenedContainer != container) {
+      clear(false);
+    }
+    return listenedContainer = container;
+  }
+
+  void clear([bool removeWatcher = true]) {
     for (var subscription in subscriptions.values) {
       subscription.close();
     }
@@ -116,7 +126,10 @@ class DependencyWatcher {
       listener.close();
     }
     listeners.clear();
-    BuildWatcher.instance.watchers.remove(this);
+
+    if (removeWatcher) {
+      BuildWatcher.instance.watchers.remove(this);
+    }
   }
 
   void dispose() {

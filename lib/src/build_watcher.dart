@@ -8,8 +8,8 @@ class BuildWatcher {
   Set<DependencyWatcher> watchers = {};
 
   BuildWatcher._() {
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      WidgetsBinding.instance!.addPersistentFrameCallback((_) => onFrame());
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      WidgetsBinding.instance.addPersistentFrameCallback((_) => onFrame());
     });
   }
 

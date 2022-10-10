@@ -85,6 +85,7 @@ class InheritedConsumerElement extends InheritedElement {
   @override
   void updateDependencies(Element dependent, Object? aspect) {
     watchers[dependent] ??= DependencyWatcher(dependent, this);
+    setDependencies(dependent, {});
   }
 
   /// This is called after [dependOnInheritedElement] to watch a provider.

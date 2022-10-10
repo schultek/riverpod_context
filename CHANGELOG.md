@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Fixed bug when changing provider scopes.
+
 ## 0.2.0
 
 - Bump riverpod version to 2.0.0
